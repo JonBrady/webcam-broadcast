@@ -3,6 +3,7 @@ import { addDoc, collection, doc, updateDoc, serverTimestamp, getDoc } from 'fir
 import { db } from '../config/firebase';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useBroadcast } from '../contexts/BroadcastContext';
 
 interface VideoFeedProps {
   isViewer?: boolean;
@@ -18,6 +19,7 @@ const VideoFeed: React.FC<VideoFeedProps> = ({ isViewer = false }) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { broadcastId: paramBroadcastId } = useParams();
+  const { setIsCurrentlyBroadcasting } = useBroadcast();
 
   // Check if there's an active broadcast when component mounts
   useEffect(() => {
@@ -29,51 +31,22 @@ const VideoFeed: React.FC<VideoFeedProps> = ({ isViewer = false }) => {
           
           if (broadcastSnap.exists()) {
             const broadcastData = broadcastSnap.data();
-            // If this is the broadcaster's stream
-            if (broadcastData.broadcasterUid === user?.uid) {
+            if (broadcastData.broadcasterUid === user?.uid && broadcastData.active) {
               setBroadcastId(paramBroadcastId);
               setIsBroadcasting(true);
               setBroadcastTitle(broadcastData.title);
+              setIsCurrentlyBroadcasting(true);
             }
           }
         } catch (err) {
           console.error('Error checking broadcast status:', err);
+          setError('Failed to check broadcast status');
         }
       }
     };
 
     checkBroadcastStatus();
-  }, [paramBroadcastId, user?.uid]);
-
-  // Add this effect to check broadcast status on mount and URL changes
-  useEffect(() => {
-    const checkBroadcastStatus = async () => {
-      if (window.location.pathname.includes('/broadcast/')) {
-        const pathParts = window.location.pathname.split('/');
-        const currentBroadcastId = pathParts[pathParts.length - 1];
-        
-        if (currentBroadcastId) {
-          try {
-            const broadcastRef = doc(db, 'broadcasts', currentBroadcastId);
-            const broadcastSnap = await getDoc(broadcastRef);
-            
-            if (broadcastSnap.exists()) {
-              const broadcastData = broadcastSnap.data();
-              if (broadcastData.broadcasterUid === user?.uid) {
-                setBroadcastId(currentBroadcastId);
-                setIsBroadcasting(true);
-                setBroadcastTitle(broadcastData.title);
-              }
-            }
-          } catch (err) {
-            console.error('Error checking broadcast status:', err);
-          }
-        }
-      }
-    };
-
-    checkBroadcastStatus();
-  }, [user?.uid]);
+  }, [paramBroadcastId, user?.uid, setIsCurrentlyBroadcasting]);
 
   const tryDifferentConstraints = async () => {
     const constraints = [
@@ -173,12 +146,12 @@ const VideoFeed: React.FC<VideoFeedProps> = ({ isViewer = false }) => {
         title: broadcastTitle.trim(),
         active: true,
         viewerCount: 0,
-        startTime: serverTimestamp(),
-        endTime: null
+        startTime: serverTimestamp()
       });
 
       setBroadcastId(broadcastRef.id);
       setIsBroadcasting(true);
+      setIsCurrentlyBroadcasting(true);
       navigate(`/broadcast/${broadcastRef.id}`);
     } catch (err) {
       console.error('Error starting broadcast:', err);
@@ -187,27 +160,17 @@ const VideoFeed: React.FC<VideoFeedProps> = ({ isViewer = false }) => {
   };
 
   const stopBroadcast = async () => {
+    if (!broadcastId) return;
+
     try {
-      if (!broadcastId) {
-        // If no broadcastId in state, try to get it from the URL
-        const pathParts = window.location.pathname.split('/');
-        const urlBroadcastId = pathParts[pathParts.length - 1];
-        if (urlBroadcastId) {
-          const broadcastRef = doc(db, 'broadcasts', urlBroadcastId);
-          await updateDoc(broadcastRef, {
-            active: false,
-            endTime: serverTimestamp()
-          });
-        }
-      } else {
-        const broadcastRef = doc(db, 'broadcasts', broadcastId);
-        await updateDoc(broadcastRef, {
-          active: false,
-          endTime: serverTimestamp()
-        });
-      }
+      const broadcastRef = doc(db, 'broadcasts', broadcastId);
+      await updateDoc(broadcastRef, {
+        active: false,
+        endTime: serverTimestamp()
+      });
       
       setIsBroadcasting(false);
+      setIsCurrentlyBroadcasting(false);
       setBroadcastId(null);
       setBroadcastTitle('');
       navigate('/');

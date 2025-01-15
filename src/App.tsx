@@ -1,13 +1,51 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import VideoFeed from './components/VideoFeed';
 import BroadcastList from './components/BroadcastList';
-import { BroadcastProvider } from './contexts/BroadcastContext';
+import { BroadcastProvider, useBroadcast } from './contexts/BroadcastContext';
 import './App.css';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { db } from './config/firebase';
 
 const Navigation: React.FC = () => {
-  const { user, signIn, signOut } = useAuth();
+  const { user, signIn, signOut, error } = useAuth();
+  const { isCurrentlyBroadcasting } = useBroadcast();
+  const [currentBroadcastTitle, setCurrentBroadcastTitle] = useState<string>('');
+  const [broadcastId, setBroadcastId] = useState<string>('');
+
+  useEffect(() => {
+    let unsubscribe: (() => void) | undefined;
+
+    if (user) {
+      try {
+        const broadcastsQuery = query(
+          collection(db, 'broadcasts'),
+          where('broadcasterUid', '==', user.uid),
+          where('active', '==', true)
+        );
+
+        unsubscribe = onSnapshot(broadcastsQuery, (snapshot) => {
+          const activeBroadcast = snapshot.docs[0];
+          if (activeBroadcast) {
+            setCurrentBroadcastTitle(activeBroadcast.data().title);
+            setBroadcastId(activeBroadcast.id);
+          } else {
+            setCurrentBroadcastTitle('');
+            setBroadcastId('');
+          }
+        });
+      } catch (error) {
+        console.error('Error setting up broadcast listener:', error);
+      }
+    }
+
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
+  }, [user]);
 
   return (
     <nav className="nav-bar">
@@ -16,9 +54,17 @@ const Navigation: React.FC = () => {
       </div>
       <div className="nav-links">
         <Link to="/">Home</Link>
-        {user && <Link to="/broadcast">Start Broadcasting</Link>}
+        {user && !isCurrentlyBroadcasting && !currentBroadcastTitle && (
+          <Link to="/broadcast">Start Broadcasting</Link>
+        )}
+        {user && (isCurrentlyBroadcasting || currentBroadcastTitle) && (
+          <Link to={`/broadcast/${broadcastId}`} className="current-broadcast">
+            {currentBroadcastTitle}
+          </Link>
+        )}
       </div>
       <div className="nav-auth">
+        {error && <div className="auth-error">{error}</div>}
         {user ? (
           <div className="user-info">
             <span>{user.displayName}</span>

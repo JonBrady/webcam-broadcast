@@ -1,22 +1,15 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { 
-  Auth,
-  User,
-  signInWithPopup,
-  GoogleAuthProvider,
-  signOut as firebaseSignOut,
-  browserPopupRedirectResolver
-} from 'firebase/auth';
-import { auth } from '../config/firebase';
+import { User, signInWithPopup, signOut as firebaseSignOut, AuthError } from 'firebase/auth';
+import { auth, provider } from '../config/firebase';
 
 interface AuthContextType {
   user: User | null;
-  loading: boolean;
   signIn: () => Promise<void>;
   signOut: () => Promise<void>;
+  error: string | null;
 }
 
-const AuthContext = createContext<AuthContextType | null>(null);
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -29,12 +22,16 @@ export const useAuth = () => {
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log('Setting up auth state listener');
     const unsubscribe = auth.onAuthStateChanged((user) => {
-      console.log('Auth state changed:', user ? 'User logged in' : 'No user');
       setUser(user);
+      setLoading(false);
+      setError(null);
+    }, (error) => {
+      console.error('Auth state change error:', error);
+      setError(error.message);
       setLoading(false);
     });
 
@@ -43,28 +40,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async () => {
     try {
-      console.log('Attempting to sign in with Google...');
-      const provider = new GoogleAuthProvider();
-      provider.setCustomParameters({
-        prompt: 'select_account'
-      });
-      
-      const result = await signInWithPopup(auth, provider, browserPopupRedirectResolver);
-      console.log('Sign in successful:', result.user.displayName);
-    } catch (error: any) {
-      console.error('Detailed sign-in error:', {
-        code: error.code,
-        message: error.message,
-        email: error.email,
-        credential: error.credential
-      });
-      
-      if (error.code === 'auth/popup-blocked') {
-        alert('Please enable popups for this website to sign in with Google');
-      } else if (error.code === 'auth/popup-closed-by-user') {
-        console.log('Sign-in popup was closed by the user');
+      setError(null);
+      const result = await signInWithPopup(auth, provider);
+      setUser(result.user);
+    } catch (error) {
+      console.error('Authentication error:', error);
+      if (error instanceof Error) {
+        const authError = error as AuthError;
+        switch (authError.code) {
+          case 'auth/popup-closed-by-user':
+            setError('Sign-in cancelled. Please try again.');
+            break;
+          case 'auth/popup-blocked':
+            setError('Pop-up blocked by browser. Please allow pop-ups for this site.');
+            break;
+          case 'auth/cancelled-popup-request':
+            setError('Previous sign-in still in progress. Please wait.');
+            break;
+          case 'auth/network-request-failed':
+            setError('Network error. Please check your internet connection.');
+            break;
+          default:
+            setError(authError.message || 'Failed to sign in. Please try again.');
+        }
       } else {
-        alert('Error signing in: ' + error.message);
+        setError('An unexpected error occurred. Please try again.');
       }
       throw error;
     }
@@ -72,25 +72,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signOut = async () => {
     try {
-      console.log('Attempting to sign out...');
+      setError(null);
       await firebaseSignOut(auth);
-      console.log('Sign out successful');
+      setUser(null);
     } catch (error) {
-      console.error('Error signing out:', error);
+      console.error('Sign out error:', error);
+      setError('Failed to sign out. Please try again.');
       throw error;
     }
   };
 
-  const value = {
-    user,
-    loading,
-    signIn,
-    signOut
-  };
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return (
-    <AuthContext.Provider value={value}>
-      {!loading && children}
+    <AuthContext.Provider value={{ user, signIn, signOut, error }}>
+      {children}
     </AuthContext.Provider>
   );
 }; 

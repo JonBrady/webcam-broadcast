@@ -280,3 +280,25 @@
   color: white;
   backdrop-filter: blur(4px);
 }
+
+.current-broadcast {
+  color: #4CAF50;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.current-broadcast:hover {
+  text-decoration: underline;
+}
+
+.auth-error {
+  color: #ff4444;
+  font-size: 0.9rem;
+  margin-right: 1rem;
+  padding: 0.5rem;
+  background-color: rgba(255, 68, 68, 0.1);
+  border-radius: 4px;
+  max-width: 300px;
+  white-space: normal;
+  word-wrap: break-word;
+}
