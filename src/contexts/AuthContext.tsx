@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, signInWithPopup, signOut as firebaseSignOut, AuthError } from 'firebase/auth';
-import { auth, provider } from '../config/firebase';
+import { auth, provider, db } from '../config/firebase';
+import { collection, query, where, getDocs, updateDoc, doc, serverTimestamp } from 'firebase/firestore';
 
 interface AuthContextType {
   user: User | null;
@@ -24,8 +25,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const stopAllActiveBroadcasts = async (userId: string) => {
+    try {
+      // Query for all active broadcasts by this user
+      const broadcastsQuery = query(
+        collection(db, 'broadcasts'),
+        where('broadcasterUid', '==', userId),
+        where('active', '==', true)
+      );
+
+      const snapshot = await getDocs(broadcastsQuery);
+      
+      // Update each broadcast to inactive
+      const updates = snapshot.docs.map(async (broadcastDoc) => {
+        const broadcastRef = doc(db, 'broadcasts', broadcastDoc.id);
+        await updateDoc(broadcastRef, {
+          active: false,
+          endTime: serverTimestamp()
+        });
+      });
+
+      await Promise.all(updates);
+    } catch (error) {
+      console.error('Error stopping broadcasts:', error);
+    }
+  };
+
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (!user && loading) {
+        // User has signed out, stop their broadcasts
+        const previousUser = auth.currentUser;
+        if (previousUser) {
+          stopAllActiveBroadcasts(previousUser.uid);
+        }
+      }
       setUser(user);
       setLoading(false);
       setError(null);
@@ -36,7 +70,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
 
     return unsubscribe;
-  }, []);
+  }, [loading]);
 
   const signIn = async () => {
     try {
@@ -73,6 +107,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signOut = async () => {
     try {
       setError(null);
+      if (user) {
+        await stopAllActiveBroadcasts(user.uid);
+      }
       await firebaseSignOut(auth);
       setUser(null);
     } catch (error) {

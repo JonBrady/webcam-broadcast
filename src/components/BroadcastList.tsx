@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
 import { db } from '../config/firebase';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 interface Broadcast {
   id: string;
@@ -10,29 +10,34 @@ interface Broadcast {
   broadcasterName: string;
   broadcasterUid: string;
   viewerCount: number;
-  startTime: any;
   active: boolean;
+  startTime: { toMillis(): number } | null;
 }
 
-const BroadcastList: React.FC = () => {
+export default function BroadcastList() {
   const [broadcasts, setBroadcasts] = useState<Broadcast[]>([]);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const broadcastsQuery = query(
       collection(db, 'broadcasts'),
-      where('active', '==', true),
-      orderBy('startTime', 'desc')
+      where('active', '==', true)
     );
 
     const unsubscribe = onSnapshot(broadcastsQuery, (snapshot) => {
-      const broadcastsData = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      } as Broadcast));
-      setBroadcasts(broadcastsData);
+      const broadcastList = snapshot.docs
+        .map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        } as Broadcast))
+        .sort((a, b) => {
+          const timeA = a.startTime?.toMillis?.() || 0;
+          const timeB = b.startTime?.toMillis?.() || 0;
+          return timeB - timeA;
+        });
+      setBroadcasts(broadcastList);
       setLoading(false);
     }, (error) => {
       console.error('Error fetching broadcasts:', error);
@@ -44,20 +49,18 @@ const BroadcastList: React.FC = () => {
 
   const handleBroadcastAction = (broadcast: Broadcast) => {
     if (broadcast.broadcasterUid === user?.uid) {
-      // If user is the broadcaster, navigate to manage broadcast
       navigate(`/broadcast/${broadcast.id}`);
     } else {
-      // If user is a viewer, navigate to watch broadcast
       navigate(`/watch/${broadcast.id}`);
     }
   };
 
   if (loading) {
-    return <div className="broadcast-list">Loading broadcasts...</div>;
+    return <div>Loading broadcasts...</div>;
   }
 
   return (
-    <div className="broadcast-list">
+    <div>
       <h2>Live Broadcasts</h2>
       {broadcasts.length === 0 ? (
         <p>No active broadcasts at the moment.</p>
@@ -66,13 +69,18 @@ const BroadcastList: React.FC = () => {
           {broadcasts.map((broadcast) => (
             <div key={broadcast.id} className="broadcast-card">
               <h3>{broadcast.title}</h3>
-              <div className="broadcast-info">
-                <p>Broadcaster: {broadcast.broadcasterName}</p>
-                <p>Viewers: {broadcast.viewerCount}</p>
-              </div>
+              <p>Broadcaster: {broadcast.broadcasterName}</p>
+              <p>Viewers: {broadcast.viewerCount}</p>
               <button
-                className="join-button"
                 onClick={() => handleBroadcastAction(broadcast)}
+                style={{
+                  backgroundColor: broadcast.broadcasterUid === user?.uid ? '#4CAF50' : '#2196F3',
+                  color: 'white',
+                  padding: '10px 20px',
+                  border: 'none',
+                  borderRadius: '5px',
+                  cursor: 'pointer'
+                }}
               >
                 {broadcast.broadcasterUid === user?.uid ? 'Manage Broadcast' : 'Join Broadcast'}
               </button>
@@ -82,6 +90,4 @@ const BroadcastList: React.FC = () => {
       )}
     </div>
   );
-};
-
-export default BroadcastList; 
+} 

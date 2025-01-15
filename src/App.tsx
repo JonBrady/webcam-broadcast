@@ -10,7 +10,7 @@ import { db } from './config/firebase';
 
 const Navigation: React.FC = () => {
   const { user, signIn, signOut, error } = useAuth();
-  const { isCurrentlyBroadcasting } = useBroadcast();
+  const { isCurrentlyBroadcasting, setIsCurrentlyBroadcasting } = useBroadcast();
   const [currentBroadcastTitle, setCurrentBroadcastTitle] = useState<string>('');
   const [broadcastId, setBroadcastId] = useState<string>('');
 
@@ -30,14 +30,20 @@ const Navigation: React.FC = () => {
           if (activeBroadcast) {
             setCurrentBroadcastTitle(activeBroadcast.data().title);
             setBroadcastId(activeBroadcast.id);
+            setIsCurrentlyBroadcasting(true);
           } else {
             setCurrentBroadcastTitle('');
             setBroadcastId('');
+            setIsCurrentlyBroadcasting(false);
           }
         });
       } catch (error) {
         console.error('Error setting up broadcast listener:', error);
       }
+    } else {
+      setCurrentBroadcastTitle('');
+      setBroadcastId('');
+      setIsCurrentlyBroadcasting(false);
     }
 
     return () => {
@@ -45,7 +51,7 @@ const Navigation: React.FC = () => {
         unsubscribe();
       }
     };
-  }, [user]);
+  }, [user, setIsCurrentlyBroadcasting]);
 
   return (
     <nav className="nav-bar">
@@ -54,10 +60,10 @@ const Navigation: React.FC = () => {
       </div>
       <div className="nav-links">
         <Link to="/">Home</Link>
-        {user && !isCurrentlyBroadcasting && !currentBroadcastTitle && (
+        {user && !isCurrentlyBroadcasting && (
           <Link to="/broadcast">Start Broadcasting</Link>
         )}
-        {user && (isCurrentlyBroadcasting || currentBroadcastTitle) && (
+        {user && isCurrentlyBroadcasting && broadcastId && (
           <Link to={`/broadcast/${broadcastId}`} className="current-broadcast">
             {currentBroadcastTitle}
           </Link>
