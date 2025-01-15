@@ -1,0 +1,282 @@
+.app-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.nav-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background-color: #1a1a1a;
+  margin-bottom: 2rem;
+  border-radius: 8px;
+}
+
+.nav-brand a {
+  color: white;
+  text-decoration: none;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.nav-links {
+  display: flex;
+  gap: 1rem;
+}
+
+.nav-links a {
+  color: white;
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.nav-links a:hover {
+  background-color: #333;
+}
+
+.nav-auth button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.nav-auth button:hover {
+  background-color: #45a049;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  color: white;
+}
+
+.broadcast-list {
+  padding: 1rem;
+}
+
+.broadcast-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.broadcast-card {
+  background-color: #1a1a1a;
+  padding: 1rem;
+  border-radius: 8px;
+  color: white;
+}
+
+.broadcast-card h3 {
+  margin: 0 0 1rem 0;
+  color: #4CAF50;
+}
+
+.broadcast-info {
+  margin-bottom: 1rem;
+}
+
+.broadcast-info p {
+  margin: 0.5rem 0;
+  color: #ccc;
+}
+
+.join-button {
+  width: 100%;
+  padding: 0.5rem;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.join-button:hover {
+  background-color: #45a049;
+}
+
+.video-container {
+  position: relative;
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  background-color: #1a1a1a;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.video-wrapper {
+  position: relative;
+  width: 100%;
+  padding-top: 56.25%; /* 16:9 Aspect Ratio */
+}
+
+.video-wrapper video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background-color: #000;
+}
+
+.broadcast-controls {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 40px);
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 8px;
+  backdrop-filter: blur(4px);
+  z-index: 10;
+}
+
+.broadcast-title-input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 10px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.3);
+  color: white;
+  font-size: 16px;
+}
+
+.broadcast-title-input::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.start-broadcast-button,
+.stop-broadcast-button {
+  width: 100%;
+  padding: 12px;
+  border-radius: 4px;
+  border: none;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.start-broadcast-button {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.start-broadcast-button:hover:not(:disabled) {
+  background-color: #45a049;
+}
+
+.start-broadcast-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.stop-broadcast-button {
+  background-color: #f44336;
+  color: white;
+}
+
+.stop-broadcast-button:hover {
+  background-color: #da190b;
+}
+
+@media (max-width: 768px) {
+  .nav-bar {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .broadcast-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.error-container {
+  padding: 20px;
+  background-color: rgba(0, 0, 0, 0.8);
+  border-radius: 8px;
+  color: white;
+  text-align: center;
+}
+
+.error-message {
+  color: #ff4444;
+  margin-bottom: 15px;
+}
+
+.retry-button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin: 10px 0;
+}
+
+.retry-button:hover {
+  background-color: #45a049;
+}
+
+.troubleshooting-tips {
+  margin-top: 20px;
+  text-align: left;
+  font-size: 0.9em;
+}
+
+.troubleshooting-tips ul {
+  margin-top: 10px;
+  padding-left: 20px;
+}
+
+.troubleshooting-tips li {
+  margin: 5px 0;
+}
+
+.status-message {
+  text-align: center;
+  padding: 20px;
+  color: white;
+}
+
+/* Viewer mode specific styles */
+.video-container.viewer-mode {
+  max-width: 100%;
+  height: calc(100vh - 60px); /* Adjust based on your navbar height */
+}
+
+.video-container.viewer-mode .video-wrapper {
+  height: 100%;
+  padding-top: 0;
+}
+
+.video-container.viewer-mode video {
+  object-fit: contain;
+}
+
+/* Optional: Add viewer info overlay */
+.viewer-info {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 10px 20px;
+  border-radius: 4px;
+  color: white;
+  backdrop-filter: blur(4px);
+}
