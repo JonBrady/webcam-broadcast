@@ -246,12 +246,11 @@ export default function VideoFeed({ isViewer, broadcastId }: VideoFeedProps) {
         autoPlay
         playsInline
         muted
-        style={{ width: '100%', maxWidth: '600px' }}
       />
       {error && (
         <div className="error-container">
-          <div className="error-message" style={{ color: '#ff4444' }}>{error}</div>
-          <div className="troubleshooting-tips" style={{ marginTop: '10px', color: '#ffffff' }}>
+          <div className="error-message">{error}</div>
+          <div className="troubleshooting-tips">
             Tips:
             <ul>
               <li>Close other applications using your camera</li>
@@ -263,29 +262,16 @@ export default function VideoFeed({ isViewer, broadcastId }: VideoFeedProps) {
         </div>
       )}
       {!isViewer && hasUserMedia && !isBroadcasting && (
-        <div className="broadcast-controls" style={{ marginTop: '20px' }}>
+        <div className="broadcast-controls">
           <input
             type="text"
             value={broadcastTitle}
             onChange={(e) => setBroadcastTitle(e.target.value)}
             placeholder="Enter broadcast title..."
-            style={{
-              padding: '10px',
-              marginRight: '10px',
-              borderRadius: '5px',
-              border: '1px solid #ccc'
-            }}
           />
           <button 
             onClick={startBroadcast}
-            style={{
-              backgroundColor: '#4CAF50',
-              color: 'white',
-              padding: '10px 20px',
-              border: 'none',
-              borderRadius: '5px',
-              cursor: 'pointer'
-            }}
+            className="button button-primary"
             disabled={!broadcastTitle.trim()}
           >
             Start Broadcasting
@@ -295,16 +281,7 @@ export default function VideoFeed({ isViewer, broadcastId }: VideoFeedProps) {
       {!isViewer && hasUserMedia && isBroadcasting && (
         <button 
           onClick={stopStream}
-          className="stop-broadcast-button"
-          style={{
-            backgroundColor: '#ff4444',
-            color: 'white',
-            padding: '10px 20px',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: 'pointer',
-            marginTop: '10px'
-          }}
+          className="button button-danger"
         >
           Stop Broadcasting
         </button>

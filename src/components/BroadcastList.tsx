@@ -60,10 +60,10 @@ export default function BroadcastList() {
   }
 
   return (
-    <div>
+    <div className="main-content">
       <h2>Live Broadcasts</h2>
       {broadcasts.length === 0 ? (
-        <p>No active broadcasts at the moment.</p>
+        <p className="status-message">No active broadcasts at the moment.</p>
       ) : (
         <div className="broadcast-grid">
           {broadcasts.map((broadcast) => (
@@ -73,14 +73,7 @@ export default function BroadcastList() {
               <p>Viewers: {broadcast.viewerCount}</p>
               <button
                 onClick={() => handleBroadcastAction(broadcast)}
-                style={{
-                  backgroundColor: broadcast.broadcasterUid === user?.uid ? '#4CAF50' : '#2196F3',
-                  color: 'white',
-                  padding: '10px 20px',
-                  border: 'none',
-                  borderRadius: '5px',
-                  cursor: 'pointer'
-                }}
+                className={`button ${broadcast.broadcasterUid === user?.uid ? 'button-primary' : 'button-secondary'}`}
               >
                 {broadcast.broadcasterUid === user?.uid ? 'Manage Broadcast' : 'Join Broadcast'}
               </button>

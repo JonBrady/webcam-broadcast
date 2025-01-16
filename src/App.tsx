@@ -59,12 +59,12 @@ const Navigation: React.FC = () => {
         <Link to="/">Webcam Broadcast</Link>
       </div>
       <div className="nav-links">
-        <Link to="/">Home</Link>
+        <Link to="/" className="nav-link">Home</Link>
         {user && !isCurrentlyBroadcasting && (
-          <Link to="/broadcast">Start Broadcasting</Link>
+          <Link to="/broadcast" className="nav-link">Start Broadcasting</Link>
         )}
         {user && isCurrentlyBroadcasting && broadcastId && (
-          <Link to={`/broadcast/${broadcastId}`} className="current-broadcast">
+          <Link to={`/broadcast/${broadcastId}`} className="nav-link current-broadcast">
             {currentBroadcastTitle}
           </Link>
         )}
@@ -74,10 +74,10 @@ const Navigation: React.FC = () => {
         {user ? (
           <div className="user-info">
             <span>{user.displayName}</span>
-            <button onClick={signOut}>Sign Out</button>
+            <button onClick={signOut} className="auth-button">Sign Out</button>
           </div>
         ) : (
-          <button onClick={signIn}>Sign In</button>
+          <button onClick={signIn} className="auth-button">Sign In</button>
         )}
       </div>
     </nav>
