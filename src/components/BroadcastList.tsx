@@ -6,12 +6,12 @@ import { useNavigate } from 'react-router-dom';
 
 interface Broadcast {
   id: string;
-  title: string;
   broadcasterName: string;
-  broadcasterUid: string;
-  viewerCount: number;
+  title: string;
   active: boolean;
-  startTime: { toMillis(): number } | null;
+  viewerCount: number;
+  startTime: Date;
+  thumbnail?: string;
 }
 
 export default function BroadcastList() {
@@ -60,23 +60,38 @@ export default function BroadcastList() {
   }
 
   return (
-    <div className="main-content">
+    <div className="broadcast-list">
       <h2>Live Broadcasts</h2>
       {broadcasts.length === 0 ? (
-        <p className="status-message">No active broadcasts at the moment.</p>
+        <p>No active broadcasts</p>
       ) : (
         <div className="broadcast-grid">
-          {broadcasts.map((broadcast) => (
+          {broadcasts.map(broadcast => (
             <div key={broadcast.id} className="broadcast-card">
-              <h3>{broadcast.title}</h3>
-              <p>Broadcaster: {broadcast.broadcasterName}</p>
-              <p>Viewers: {broadcast.viewerCount}</p>
-              <button
-                onClick={() => handleBroadcastAction(broadcast)}
-                className={`button ${broadcast.broadcasterUid === user?.uid ? 'button-primary' : 'button-secondary'}`}
-              >
-                {broadcast.broadcasterUid === user?.uid ? 'Manage Broadcast' : 'Join Broadcast'}
-              </button>
+              {broadcast.thumbnail ? (
+                <div className="thumbnail-container">
+                  <img 
+                    src={broadcast.thumbnail} 
+                    alt={`${broadcast.title} thumbnail`}
+                    className="broadcast-thumbnail"
+                  />
+                </div>
+              ) : (
+                <div className="thumbnail-placeholder">
+                  <span>No Preview</span>
+                </div>
+              )}
+              <div className="broadcast-info">
+                <h3>{broadcast.title}</h3>
+                <p>Broadcaster: {broadcast.broadcasterName}</p>
+                <p>Viewers: {broadcast.viewerCount}</p>
+                <button 
+                  onClick={() => handleBroadcastAction(broadcast)}
+                  className={`button ${broadcast.broadcasterUid === user?.uid ? 'button-primary' : 'button-secondary'}`}
+                >
+                  {broadcast.broadcasterUid === user?.uid ? 'Manage Broadcast' : 'Join Broadcast'}
+                </button>
+              </div>
             </div>
           ))}
         </div>

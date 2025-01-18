@@ -5,12 +5,12 @@ import { getFirestore } from 'firebase/firestore';
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyCEb0-HItH08Ek6Ix1OL5PjLMjQdvu0J80",
-  authDomain: "webcam-broadcast.firebaseapp.com",
-  projectId: "webcam-broadcast",
-  storageBucket: "webcam-broadcast.appspot.com",
-  messagingSenderId: "1068102663148",
-  appId: "1:1068102663148:web:ace324dd65e428ebcb9ec9"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
 // Initialize Firebase
